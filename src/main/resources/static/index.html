@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPIN TO WIN | BEYBLADE X API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --x-blue: #00f3ff; --x-purple: #bc13fe; --x-green: #39ff14;
+            --x-yellow: #fefe33; --bg-dark: #090910;
+            --glass-bg: rgba(20, 20, 35, 0.7); --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            background-color: var(--bg-dark); color: #fff; font-family: 'Rajdhani', sans-serif;
+            margin: 0; padding-bottom: 50px;
+            height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(188, 19, 254, 0.2) 0%, transparent 40%),
+            linear-gradient(135deg, #050510 0%, #1a1a2e 100%);
+            background-attachment: fixed;
+        }
+
+        header {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 50px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--x-purple);
+            text-align: center;
+        }
+        header h1 { margin: 0; font-family: 'Orbitron'; font-size: 2rem; letter-spacing: 2px; }
+        .subtitle { color: var(--x-green); letter-spacing: 8px; font-size: 0.7rem; margin-top: 2px; }
+
+        .container {
+            max-width: 1600px; margin: 15px auto; padding: 0 40px;
+            display: grid; grid-template-columns: 1fr 2.2fr; gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 12px; backdrop-filter: blur(15px);
+        }
+
+        .poster-container {
+            width: 100%; height: 35vh; display: flex; justify-content: center; align-items: center;
+            border-radius: 12px; overflow: hidden; margin-bottom: 5px;
+        }
+        .poster-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* --- DYNAMIC BEY IMAGE STYLE --- */
+        .dominant-container {
+            display: flex; align-items: center; gap: 20px;
+        }
+        .bey-display-img {
+            width: 80px; height: 80px; object-fit: contain;
+            filter: drop-shadow(0 0 10px var(--x-blue));
+            display: none; /* Hidden by default until image loads */
+        }
+
+        .hero-stat-value { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; color: var(--x-green); line-height: 1; }
+        .hero-stat-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.7rem; color: #ccc; }
+        .meta-name { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; text-shadow: 0 0 15px var(--x-blue); text-transform: uppercase; }
+
+        canvas { max-height: 240px; }
+
+        footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(0, 0, 0, 0.9); border-top: 1px solid var(--glass-border); padding: 8px 0;
+            display: flex; justify-content: center; align-items: center; gap: 20px; z-index: 1000;
+        }
+        .author-tag { border-right: 3px solid var(--x-yellow); padding-right: 15px; text-align: right; }
+        .author-tag .name { font-family: 'Orbitron'; font-size: 0.85rem; color: #fff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SPIN TO WIN API</h1>
+    <div class="subtitle">BEYBLADE X META TRACKER</div>
+</header>
+
+<div class="container">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="poster-container">
+            <img src="https://i.ibb.co/yFJh8Nh8/BBX-Poster.jpg" alt="BBX-Poster">
+        </div>
+
+        <div class="card" style="border-left: 5px solid var(--x-green);">
+            <div class="hero-stat-value" id="totalMatches">0</div>
+            <div class="hero-stat-label">Matches Tracked</div>
+        </div>
+
+        <div class="card">
+            <div class="hero-stat-label">👑 DOMINANT BLADE</div>
+            <div class="dominant-container">
+                <img id="dominantBeyImg" src="" class="bey-display-img" alt="">
+                <div class="meta-name" id="topBladeName">...</div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 5px solid var(--x-yellow);">
+            <h2 style="margin: 0; font-size: 0.9rem; color: #ccc;">⚡ WINNINGEST BIT</h2>
+            <div id="topBitName" style="font-size: 1.5rem; color: var(--x-yellow); font-weight: bold;">-</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2 style="margin: 0 0 5px 0; font-size: 1rem;">📊 BLADE META REPORT</h2>
+            <canvas id="bladeChart"></canvas>
+        </div>
+        <div class="card">
+            <h2 style="margin: 0 0 5px 0; font-size: 0.9rem;">⚙️ RATCHET DISTRIBUTION</h2>
+            <canvas id="ratchetChart"></canvas>
+        </div>
+        <div class="card">
+            <h2 style="margin: 0 0 5px 0; font-size: 0.9rem;">📈 BIT TRENDS</h2>
+            <canvas id="bitChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="author-tag"><span>DEVELOPED BY</span><div class="name">TEDDY JONES</div></div>
+    <div style="font-size: 0.7rem; color: #555; letter-spacing: 2px;">SPIN TO WIN API // SYSTEM ONLINE</div>
+</footer>
+
+<script>
+    Chart.defaults.color = '#a0a0c0';
+    Chart.defaults.font.family = "'Rajdhani', sans-serif";
+
+    // --- FILENAME LOOKUP CONFIGURATION ---
+    // Ensure your images are named exactly like this in /static/images/
+    const beyImageMap = {
+        "Wizard Rod": "wizard-rod.png",
+        "Cobalt Dragoon": "cobalt-dragoon.png"
+    };
+
+    async function initDashboard() {
+        try {
+            const sumRes = await fetch('/api/stats/summary');
+            document.getElementById('totalMatches').innerText = await sumRes.text();
+
+            const bladeRes = await fetch('/api/stats/all-blades');
+            const bladeData = await bladeRes.json();
+            if (bladeData.length > 0) {
+                const topName = bladeData[0].name;
+                document.getElementById('topBladeName').innerText = topName;
+
+                // DYNAMIC IMAGE UPDATE
+                updateDominantImage(topName);
+                renderBladeChart(bladeData);
+            }
+
+            const ratchetRes = await fetch('/api/stats/ratchets');
+            const ratchetData = await ratchetRes.json();
+            if (ratchetData.length > 0) renderRatchetChart(ratchetData);
+
+            const bitRes = await fetch('/api/stats/bits');
+            const bitData = await bitRes.json();
+            if (bitData.length > 0) {
+                document.getElementById('topBitName').innerText = bitData[0].name.toUpperCase();
+                renderBitChart(bitData);
+            }
+        } catch (e) { console.error("Fetch Error:", e); }
+    }
+
+    function updateDominantImage(name) {
+        const imgTag = document.getElementById('dominantBeyImg');
+        const filename = beyImageMap[name];
+
+        if (filename) {
+            imgTag.src = `/images/${filename}`;
+            imgTag.style.display = 'block';
+        } else {
+            imgTag.style.display = 'none'; // Hide if no image found for new meta
+        }
+    }
+
+    function renderBladeChart(data) {
+        new Chart(document.getElementById('bladeChart'), {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{ label: 'Wins', data: data.map(d => d.winCount), backgroundColor: '#00f3ff' }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+
+    function renderRatchetChart(data) {
+        new Chart(document.getElementById('ratchetChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{ data: data.map(d => d.winCount), backgroundColor: ['#39ff14', '#00f3ff', '#bc13fe', '#fefe33', '#ffffff', '#ff4500'] }]
+            },
+            options: { cutout: '60%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } } }
+        });
+    }
+
+    function renderBitChart(data) {
+        new Chart(document.getElementById('bitChart'), {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.name),
+                datasets: [{ label: 'Wins', data: data.map(d => d.winCount), borderColor: '#39ff14', fill: true, tension: 0.4 }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+    initDashboard();
+</script>
+</body>
+</html>
